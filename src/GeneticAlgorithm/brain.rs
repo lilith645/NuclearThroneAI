@@ -71,7 +71,7 @@ impl Genome {
   pub fn activation(&mut self, summation: f32) -> f32 {
     // 1 / (1 + e^(-x))
     let mut strength = -1.0;
-    strength = 1.0 / (1.0 + consts::E.powf(-summation));
+    strength = 1.0 / (1.0 + (-summation).exp());
     
     strength
   }
@@ -127,6 +127,32 @@ impl Layers {
       output_layer: output_layer,
       hidden_layers: hidden_layers,
     }
+  }
+  
+  pub fn raw_genome_collection(&self) -> Vec<Genome> {
+    let input = self.input_layer.clone();
+    let hidden = self.hidden_layers.clone();
+    let output = self.output_layer.clone();
+    
+    let total_num_genomes: usize = (self.num_input_nodes + self.num_hidden_nodes*self.num_hidden_layers + self.num_output_nodes) as usize;
+    
+    let mut all_genomes = Vec::with_capacity(total_num_genomes);
+    
+    for genome in input {
+      all_genomes.push(genome);
+    }
+    
+    for layer in hidden {
+      for genome in layer {
+        all_genomes.push(genome);
+      }
+    }
+    
+    for genome in output {
+      all_genomes.push(genome);
+    }
+    
+    all_genomes
   }
   
   pub fn print_weights(&self) {
