@@ -10,7 +10,7 @@
 //! attempt to undo this by reordering the rows. Windows also uses ARGB pixels.
 
 
-#![feature(core_intrinsics, convert)]
+#![feature(core_intrinsics)]
 #![allow(unused_assignments)]
 
 extern crate libc;
