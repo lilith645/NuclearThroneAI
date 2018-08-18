@@ -8,3 +8,4 @@ enigo = "*"
 bmp = "*"
 image = "*"
 screenshot = { path = "./screenshot-rs/"}
+rand = "*"
