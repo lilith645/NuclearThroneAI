@@ -4,9 +4,10 @@ extern crate screenshot;
 extern crate bmp;
 
 mod GeneticAlgorithm;
-
 use screenshot::get_screenshot;
 use bmp::{Image, Pixel};
+
+use std::process::{Stdio, Command};
 
 fn main() {
 	let s = get_screenshot(0).unwrap();
@@ -36,4 +37,21 @@ fn main() {
 	image::save_buffer("test.png",
 		s.as_ref(), s.width() as u32, s.height() as u32, image::RGBA(8))
 	.unwrap();
+
+	//let output = if
+	//cfg!(target_os = "windows") 
+    Command::new(r#"\Users\samue\Documents\projects\NuclearThrone\nuclearthrone.exe"#)
+            //.arg("nuclearthrone.exe /K")
+			//.arg
+			.stdin(Stdio::piped())
+            .output()
+            .expect("failed to execute process");
+	/*} else {
+		Command::new("sh")
+				.arg("-c")
+				.arg("echo hello")
+				.output()
+				.expect("failed to execute process")
+	};*/
 }
+
