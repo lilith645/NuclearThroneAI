@@ -1,17 +1,11 @@
 use rand;
 use rand::{thread_rng, Rng};
 
+use std::f32::consts;
+
 pub const P_LEVEL_WEIGHT: f32 =  1.0;
 pub const G_LEVEL_WEIGHT: f32 = 0.5;
 pub const P_HEALTH_WEIGHT: f32 = 0.2;
-
-pub fn fitness(player_level: i32, health: i32, actual_level: i32) -> i32 {
-  let mut score = 0.0;
-  
-  score = (player_level as f32 * P_LEVEL_WEIGHT + health as f32 * P_HEALTH_WEIGHT) * actual_level as f32;
-  
-  score.floor() as i32
-}
 
 #[derive(Clone)]
 pub struct Gene {
@@ -41,7 +35,7 @@ impl Gene {
 pub struct Genome {
   num_connections_per_gene: u32,
   genes: Vec<Gene>,
-  _total_value: f32,
+  total_value: f32,
 }
 
 impl Genome {
@@ -54,23 +48,36 @@ impl Genome {
     Genome {
       num_connections_per_gene: num_connections_per_gene,
       genes: new_genes,
-      _total_value: 0.0,
+      total_value: 0.0,
     }
   }
   
-  pub fn recieve_input(&mut self, other: Genome) {
+  pub fn recieve_input(&mut self, genomes: Vec<Genome>) {
     // summation()
     // activation()
+    let final_summation = self.summation(genomes);
+    self.total_value = self.activation(final_summation);
   }
   
-  pub fn summation(&mut self, other: Genome) -> f32 {
+  pub fn summation(&mut self, genomes: Vec<Genome>) -> f32 {
     // inputs weighted and added up
-    0.0
+    let mut weighted_sum = 0.0;
+    for i in 0..genomes.len() as usize {
+      weighted_sum += self.genes[i].weight_value() * genomes[i].genome_strength();
+    }
+    weighted_sum
   }
   
   pub fn activation(&mut self, summation: f32) -> f32 {
     // 1 / (1 + e^(-x))
-    0.0
+    let mut strength = -1.0;
+    strength = 1.0 / (1.0 + consts::E.powf(-summation));
+    
+    strength
+  }
+  
+  pub fn genome_strength(&self) -> f32 {
+    self.total_value
   }
   
   pub fn print_weights(&self) {
@@ -172,6 +179,14 @@ impl Population {
   
   pub fn print_best_fitness_weights(&self) {
     self.best_layer.print_weights();
+  }
+  
+  fn fitness(player_level: i32, health: i32, actual_level: i32) -> i32 {
+    let mut score = 0.0;
+    
+    score = (player_level as f32 * P_LEVEL_WEIGHT + health as f32 * P_HEALTH_WEIGHT) * actual_level as f32;
+    
+    score.floor() as i32
   }
 }
 
