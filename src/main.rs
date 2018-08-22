@@ -5,45 +5,33 @@ extern crate bmp;
 extern crate rand;
 
 mod GeneticAlgorithm;
-
-use screenshot::get_screenshot;
-use bmp::{Image, Pixel};
+mod SystemFunctions;
 
 use std::process::{Stdio, Command};
 
-fn main() {
-  let s = get_screenshot(0).unwrap();
-  
-  println!("{} x {} x {} = {} bytes", s.height(), s.width(), s.pixel_width(), s.raw_len());
-  
-  let origin = s.get_pixel(0, 0);
-  println!("(0,0): R: {}, G: {}, B: {}", origin.r, origin.g, origin.b);
-  
-  let end_col = s.get_pixel(0, s.width()-1);
-  println!("(0,end): R: {}, G: {}, B: {}", end_col.r, end_col.g, end_col.b);
-  
-  let opp = s.get_pixel(s.height()-1, s.width()-1);
-  println!("(end,end): R: {}, G: {}, B: {}", opp.r, opp.g, opp.b);
-  
-  // WARNING rust-bmp params are (width, height)
-  let mut img = Image::new(s.width() as u32, s.height() as u32);
-  for row in (0..s.height()) {
-    for col in (0..s.width()) {
-      let p = s.get_pixel(row, col);
-      // WARNING rust-bmp params are (x, y)
-      img.set_pixel(col as u32, row as u32, Pixel {r: p.r, g: p.g, b: p.b});
-    }
-  }
-  img.save("test.bmp").unwrap();
-  
-  image::save_buffer("test.png",
-    s.as_ref(), s.width() as u32, s.height() as u32, image::RGBA(8))
-  .unwrap();
-  
-  let pop_size = 10;
-  let mut the_brain = GeneticAlgorithm::brain::Population::new(pop_size);
-  the_brain.print_best_fitness_weights();
-  
+const W: [u32; 9] = [1, 0, 0, 0, 0, 0, 0, 0, 0];
+const A: [u32; 9] = [0, 1, 0, 0, 0, 0, 0, 0, 0];
+const S: [u32; 9] = [0, 0, 1, 0, 0, 0, 0, 0, 0];
+const D: [u32; 9] = [0, 0, 0, 1, 0, 0, 0, 0, 0];
+const L_CLICK: [u32; 9] = [0, 0, 0, 0, 1, 0, 0, 0, 0];
+const R_CLICK: [u32; 9] = [0, 0, 0, 0, 0, 1, 0, 0, 0];
+const S_BAR: [u32; 9] = [0, 0, 0, 0, 0, 0, 1, 0, 0];
+const X_AIM: [u32; 9] = [0, 0, 0, 0, 0, 0, 0, 1, 0];
+const Y_AIM: [u32; 9] = [0, 0, 0, 0, 0, 0, 0, 0, 1];
+
+enum Actions {
+  W,
+  A,
+  S,
+  D,
+  Lclick,
+  Rclick,
+  Sbar,
+  Xaim(i32),
+  Yaim(i32)
+}
+
+fn create_enviroment(num_frames: i32) {
   let output = if cfg!(target_os = "windows") {
     Command::new(r#"\Users\samue\Documents\projects\NuclearThrone\nuclearthrone.exe"#)
       .stdin(Stdio::piped())
@@ -52,11 +40,29 @@ fn main() {
   } else {
     Command::new("sh")
             .arg("-c")
-            .arg("../../Games/nuclearthrone/runner")
+            //.arg("../../Games/nuclear-throne/runner")
+            .arg("lutris lutris:rungameid/45")
             .output()
             .expect("failed to execute process")
   };
-  
   println!("{:?}", output);
+  
+  let mut input_manager = SystemFunctions::inputs::InputManager::new();
+  
+  for i in 0..num_frames as usize {
+    let screen_data = SystemFunctions::screenshot::take_screenshot();
+    input_manager.press_w();
+  }
+}
+
+fn main() {
+  SystemFunctions::screenshot::test_screenshot();
+  
+  let pop_size = 10;
+  let mut the_brain = GeneticAlgorithm::brain::Population::new(pop_size);
+  the_brain.print_best_fitness_weights();
+  
+  let num_frames = 10;
+  create_enviroment(num_frames);
 }
 

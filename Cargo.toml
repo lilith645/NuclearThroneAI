@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Lilith645 <lilith@inet-sys.com>"]
 
 [dependencies]
-enigo = "*"
+enigo = { path = "./enigo-rs/"}
 bmp = "*"
 image = "*"
 screenshot = { path = "./screenshot-rs/"}
