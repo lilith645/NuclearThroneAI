@@ -4,6 +4,8 @@ extern crate screenshot;
 extern crate bmp;
 extern crate rand;
 
+use std::thread;
+
 mod GeneticAlgorithm;
 mod SystemFunctions;
 
@@ -32,20 +34,22 @@ enum Actions {
 }
 
 fn create_enviroment(num_frames: i32) {
-  let output = if cfg!(target_os = "windows") {
-    Command::new(r#"\Users\samue\Documents\projects\NuclearThrone\nuclearthrone.exe"#)
-      .stdin(Stdio::piped())
-            .output()
-            .expect("failed to execute process")
-  } else {
-    Command::new("sh")
-            .arg("-c")
-            //.arg("../../Games/nuclear-throne/runner")
-            .arg("lutris lutris:rungameid/45")
-            .output()
-            .expect("failed to execute process")
-  };
-  println!("{:?}", output);
+  let thread = thread::spawn(move || {
+    let output = if cfg!(target_os = "windows") {
+      Command::new(r#"\Users\samue\Documents\projects\NuclearThrone\nuclearthrone.exe"#)
+        .stdin(Stdio::piped())
+              .output()
+              .expect("failed to execute process")
+    } else {
+      Command::new("sh")
+              .arg("-c")
+              //.arg("../../Games/nuclear-throne/runner")
+              .arg("lutris lutris:rungameid/45")
+              .output()
+              .expect("failed to execute process")
+    };
+    println!("{:?}", output);
+  });
   
   let mut input_manager = SystemFunctions::inputs::InputManager::new();
   
@@ -62,7 +66,7 @@ fn main() {
   let mut the_brain = GeneticAlgorithm::brain::Population::new(pop_size);
   the_brain.print_best_fitness_weights();
   
-  let num_frames = 10;
+  let num_frames = 1000;
   create_enviroment(num_frames);
 }
 
