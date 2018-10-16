@@ -56,10 +56,9 @@ impl Genome {
   
   pub fn summation(&mut self, genomes: Vec<Genome>) -> f32 {
     // inputs weighted and added up
-    println!("{:?}", self.weights.len());
     let mut weighted_sum = 0.0;
     for i in 0..genomes.len() as usize {
-      weighted_sum += self.weights[i] * genomes[i].genome_strength();
+        weighted_sum += self.weights[i] * genomes[i].genome_strength();
     }
     weighted_sum
   }
@@ -149,13 +148,19 @@ impl Layers {
     
     for i in 0..self.num_hidden_layers {
       hidden_weights.push(Vec::new());
-      for j in 0..self.num_hidden_layers {
+      let mut length;
+      if i == 0 {
+        length = self.num_input_nodes;
+      } else {
+        length = self.num_hidden_nodes;
+      }
+      for j in 0..length {
         hidden_weights[i].push(weights[pos]);
         pos += 1;
       }
     }
     
-    for i in 0..self.num_output_nodes {
+    for i in 0..self.num_hidden_nodes {
       output_weights.push(weights[pos]);
       pos += 1;
     }
@@ -314,9 +319,14 @@ impl Population {
   }
   
   pub fn next_generation(&mut self) {
-    println!("Next Generation");
     let mut rng = thread_rng();
     self.generation += 1;
+    let mut average_fitness = 0.0;
+    for pop in &self.population {
+      average_fitness += pop.get_fitness();
+    }
+    average_fitness /= self.population.len() as f32;
+    println!("Generation: {}, Average Fitness: {}", self.generation, average_fitness);
     
     self.order_population();
     let (parent_1, parent_2) = self.selection();
@@ -343,9 +353,14 @@ impl Population {
     let mut temp_pop = self.population.clone();
     
     let mut parents = Vec::with_capacity(2);
-    parents.push(self.population[0].clone());
-    parents.push(self.population[1].clone());
-    
+    //parents.push(self.population[0].clone());
+    //parents.push(self.population[1].clone());
+    let mut rng = thread_rng();
+    let i = rng.gen_range(0, temp_pop.len()-1);
+    parents.push(temp_pop.remove(i));
+    let i = rng.gen_range(0, temp_pop.len()-1);
+    parents.push(temp_pop.remove(i));
+    /*
     for p in 0..parents.len() {
       let mut probability = Vec::new();
       let mut remaining = 100.0;
@@ -378,7 +393,7 @@ impl Population {
           break;
         }
       }
-    }
+    }*/
     
     let parent_1_weights = parents[0].get_weights();
     let parent_2_weights = parents[1].get_weights();

@@ -62,12 +62,12 @@ fn _create_enviroment(num_frames: i32) {
 fn main() {
  // SystemFunctions::screenshot::test_screenshot();
   
-  let pop_size = 100;
+  let pop_size = 50;
   let goal = vec!(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1);
   let input = vec!(0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1);
   let mut brain = GeneticAlgorithm::brain::Population::new(pop_size, input.len(), goal.len(), goal);
   
-  for i in 0..3 {
+  for i in 0..1000 {
     brain.run_generation(input.clone());
     brain.calculate_fitness();
     brain.print_best_fitness_info();
