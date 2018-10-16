@@ -70,12 +70,16 @@ fn main() {
   for i in 0..3 {
     brain.run_generation(input.clone());
     brain.calculate_fitness();
-    brain.print_best_fitness_weights();
+    brain.print_best_fitness_info();
     //the_brain.print_best_fitness_weights();
     
     brain.next_generation();
   }
   
+  println!("Final Best");
+  brain.calculate_fitness();
+  brain.print_best_fitness_info();
+  brain.print_best_fitness_weights();
  // let num_frames = 1000;
 //  create_enviroment(num_frames);
 }

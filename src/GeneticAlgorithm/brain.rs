@@ -6,6 +6,7 @@ use std::cmp::Ordering::Equal;
 
 pub const CROSSOVER_RATE: f32 = 0.5;
 pub const MUTATE_RATE: f32 = 0.5;
+pub const MUTATE_AMOUNT: f32 = 0.01;
 
 #[derive(Clone)]
 pub struct Genome {
@@ -38,6 +39,14 @@ impl Genome {
     }
   }
   
+  pub fn new_with_weights(weights: Vec<f32>, num_connections_per_gene: usize) -> Genome {
+    Genome {
+      num_connections_per_gene: num_connections_per_gene,
+      weights: weights,
+      total_value: 0.0,
+    }
+  }
+  
   pub fn recieve_input(&mut self, genomes: Vec<Genome>) {
     // summation()
     // activation()
@@ -47,6 +56,7 @@ impl Genome {
   
   pub fn summation(&mut self, genomes: Vec<Genome>) -> f32 {
     // inputs weighted and added up
+    println!("{:?}", self.weights.len());
     let mut weighted_sum = 0.0;
     for i in 0..genomes.len() as usize {
       weighted_sum += self.weights[i] * genomes[i].genome_strength();
@@ -131,6 +141,40 @@ impl Layers {
     }
   }
   
+  pub fn new_with_weights(&mut self, weights: Vec<f32>) {
+    let mut pos = 0;
+    
+    let mut hidden_weights = Vec::new();
+    let mut output_weights = Vec::new();
+    
+    for i in 0..self.num_hidden_layers {
+      hidden_weights.push(Vec::new());
+      for j in 0..self.num_hidden_layers {
+        hidden_weights[i].push(weights[pos]);
+        pos += 1;
+      }
+    }
+    
+    for i in 0..self.num_output_nodes {
+      output_weights.push(weights[pos]);
+      pos += 1;
+    }
+    
+    for i in 0..self.num_hidden_layers {
+      for j in 0..self.num_hidden_nodes {
+        if i == 0 {
+          self.hidden_layers[i][j] = Genome::new_with_weights(hidden_weights[i].clone(), self.num_input_nodes);
+        } else {
+          self.hidden_layers[i][j] = Genome::new_with_weights(hidden_weights[i].clone(), self.num_hidden_nodes);
+        }
+      }
+    }
+    
+    for i in 0..self.num_output_nodes {
+      self.output_layer.push(Genome::new_with_weights(output_weights.clone(), self.num_hidden_nodes));
+    }
+  }
+  
   pub fn set_fitness(&mut self, new_fitness: f32) {
     self.fitness = new_fitness;
   }
@@ -163,7 +207,7 @@ impl Layers {
         weights.push(weight);
       }
     }
-    println!("{}", weights.len());
+   // println!("{}", weights.len());
     weights
   }
   
@@ -270,6 +314,7 @@ impl Population {
   }
   
   pub fn next_generation(&mut self) {
+    println!("Next Generation");
     let mut rng = thread_rng();
     self.generation += 1;
     
@@ -283,11 +328,13 @@ impl Population {
       let should_crossover = rng.gen_range(0.0, 1.0);
       let should_mutate = rng.gen_range(0.0, 1.0);
       if should_crossover < CROSSOVER_RATE {
-      //  child = self.crossover(parent_1.clone(), parent_2.clone());
+        child = self.crossover(parents[0].clone(), parents[1].clone());
       }
       if should_mutate < MUTATE_RATE {
-     //   child = self.mutate(child);
+        child = self.mutate(child);
       }
+      
+      self.population[i as usize].new_with_weights(child);
     }
   }
   
@@ -340,13 +387,38 @@ impl Population {
   }
   
   //2. crossover
-  pub fn crossover(&mut self, parent_1: Vec<f32>, parent_2: Vec<f32>) {
+  pub fn crossover(&mut self, parent_1: Vec<f32>, parent_2: Vec<f32>) -> Vec<f32> {
+    let mut rng = thread_rng();
+    let pos = rng.gen_range(0, parent_1.len()-1);
     
+    let mut child = Vec::new();
+    
+    for i in 0..parent_1.len() {
+      if i < pos {
+        child.push(parent_1[i]);
+      } else {
+        child.push(parent_2[i]);
+      }
+    }
+    
+    child
   }
   
   //3. mutation
-  pub fn mutate(&mut self, child: Vec<f32>) {
+  pub fn mutate(&mut self, child: Vec<f32>) -> Vec<f32> {
+    let mut rng = thread_rng();
+    let pos = rng.gen_range(0, child.len()-1);
+    let increase_decrease = rng.gen_range(0.0, 1.0);
     
+    let mut child = child;
+    
+    if increase_decrease > 0.5 {
+      child[pos] += MUTATE_AMOUNT;
+    } else {
+      child[pos] -= MUTATE_AMOUNT;
+    }
+    
+    child
   }
   
   pub fn run_generation(&mut self, input: Vec<f32>) {
@@ -370,11 +442,9 @@ impl Population {
       for i in 0..rms.len() {
         score += rms[i];
       }
-//      score /= rms.len() as f32;
+      
       score = score.sqrt();
-     // println!("{:?}", layer.get_output());
       layer.set_fitness(score);
-    //  println!("Score: {}", score);
       if score < self.best_fitness {
         self.best_fitness = score;
         self.best_layer = layer.clone();
@@ -382,8 +452,19 @@ impl Population {
     }
   }
   
-  pub fn print_best_fitness_weights(&self) {
+  pub fn print_best_fitness_info(&self) {
+    let output = self.best_layer.get_output();
+    let fitness = self.best_layer.get_fitness();
+    
+    println!("Fitness: {}, Output: {:?}", fitness, output);
+  }
+  
+  pub fn print_best_fitness_output(&self) {
     println!("{:?}", self.best_layer.get_output());
+  }
+  
+  pub fn print_best_fitness_weights(&self) {
+    println!("{:?}", self.best_layer.get_weights());
   }
 }
 
