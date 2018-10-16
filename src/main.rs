@@ -11,17 +11,17 @@ mod SystemFunctions;
 
 use std::process::{Stdio, Command};
 
-const W: [u32; 9] = [1, 0, 0, 0, 0, 0, 0, 0, 0];
-const A: [u32; 9] = [0, 1, 0, 0, 0, 0, 0, 0, 0];
-const S: [u32; 9] = [0, 0, 1, 0, 0, 0, 0, 0, 0];
-const D: [u32; 9] = [0, 0, 0, 1, 0, 0, 0, 0, 0];
-const L_CLICK: [u32; 9] = [0, 0, 0, 0, 1, 0, 0, 0, 0];
-const R_CLICK: [u32; 9] = [0, 0, 0, 0, 0, 1, 0, 0, 0];
-const S_BAR: [u32; 9] = [0, 0, 0, 0, 0, 0, 1, 0, 0];
-const X_AIM: [u32; 9] = [0, 0, 0, 0, 0, 0, 0, 1, 0];
-const Y_AIM: [u32; 9] = [0, 0, 0, 0, 0, 0, 0, 0, 1];
+const _W: [u32; 9] = [1, 0, 0, 0, 0, 0, 0, 0, 0];
+const _A: [u32; 9] = [0, 1, 0, 0, 0, 0, 0, 0, 0];
+const _S: [u32; 9] = [0, 0, 1, 0, 0, 0, 0, 0, 0];
+const _D: [u32; 9] = [0, 0, 0, 1, 0, 0, 0, 0, 0];
+const _L_CLICK: [u32; 9] = [0, 0, 0, 0, 1, 0, 0, 0, 0];
+const _R_CLICK: [u32; 9] = [0, 0, 0, 0, 0, 1, 0, 0, 0];
+const _S_BAR: [u32; 9] = [0, 0, 0, 0, 0, 0, 1, 0, 0];
+const _X_AIM: [u32; 9] = [0, 0, 0, 0, 0, 0, 0, 1, 0];
+const _Y_AIM: [u32; 9] = [0, 0, 0, 0, 0, 0, 0, 0, 1];
 
-enum Actions {
+enum _Actions {
   W,
   A,
   S,
@@ -33,7 +33,7 @@ enum Actions {
   Yaim(i32)
 }
 
-fn create_enviroment(num_frames: i32) {
+fn _create_enviroment(num_frames: i32) {
   let thread = thread::spawn(move || {
     let output = if cfg!(target_os = "windows") {
       Command::new(r#"\Users\samue\Documents\projects\NuclearThrone\nuclearthrone.exe"#)
@@ -60,13 +60,23 @@ fn create_enviroment(num_frames: i32) {
 }
 
 fn main() {
-  SystemFunctions::screenshot::test_screenshot();
+ // SystemFunctions::screenshot::test_screenshot();
   
-  let pop_size = 10;
-  let mut the_brain = GeneticAlgorithm::brain::Population::new(pop_size);
-  the_brain.print_best_fitness_weights();
+  let pop_size = 100;
+  let goal = vec!(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1);
+  let input = vec!(0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1);
+  let mut brain = GeneticAlgorithm::brain::Population::new(pop_size, input.len(), goal.len(), goal);
   
-  let num_frames = 1000;
-  create_enviroment(num_frames);
+  for i in 0..3 {
+    brain.run_generation(input.clone());
+    brain.calculate_fitness();
+    brain.print_best_fitness_weights();
+    //the_brain.print_best_fitness_weights();
+    
+    brain.next_generation();
+  }
+  
+ // let num_frames = 1000;
+//  create_enviroment(num_frames);
 }
 
