@@ -163,7 +163,7 @@ impl Layers {
         weights.push(weight);
       }
     }
-    
+    println!("{}", weights.len());
     weights
   }
   
@@ -283,22 +283,60 @@ impl Population {
       let should_crossover = rng.gen_range(0.0, 1.0);
       let should_mutate = rng.gen_range(0.0, 1.0);
       if should_crossover < CROSSOVER_RATE {
-        child = self.crossover(parent_1.clone(), parent_2.clone());
+      //  child = self.crossover(parent_1.clone(), parent_2.clone());
       }
       if should_mutate < MUTATE_RATE {
-        child = self.mutate(child);
+     //   child = self.mutate(child);
       }
     }
   }
   
   //1. selection
   pub fn selection(&mut self) -> (Vec<f32>, Vec<f32>) {
-    let mut rng = thread_rng();
-    let i = rng.gen_range(0, self.population_size) as usize;
-    let j = rng.gen_range(0, self.population_size) as usize;
-    let parent_1 = self.population[i].get_weights();
-    let parent_2 = self.population[j].get_weights();
-    (parent_1, parent_2)
+    let mut temp_pop = self.population.clone();
+    
+    let mut parents = Vec::with_capacity(2);
+    parents.push(self.population[0].clone());
+    parents.push(self.population[1].clone());
+    
+    for p in 0..parents.len() {
+      let mut probability = Vec::new();
+      let mut remaining = 100.0;
+      
+      let mut total_fitness = 0.0;
+      for i in 0..temp_pop.len() as usize {
+        total_fitness += temp_pop[i].get_fitness();
+      }
+      
+      for i in 0..temp_pop.len() {
+        let percentage = (temp_pop[i].get_fitness() / total_fitness);
+        let one_minus = 1.0 - percentage;
+        let probability_percentage = one_minus * remaining;
+        if i == temp_pop.len() {
+          probability.push(remaining);
+        } else {
+          remaining -= probability_percentage;
+          probability.push(probability_percentage);
+        }
+      }
+      
+      let mut rng = thread_rng();
+      let rand = rng.gen_range(0.0, 1.0);
+      
+      let mut percentage_so_far = 0.0;
+      for k in 0..probability.len() {
+        percentage_so_far += probability[k];
+        if rand < percentage_so_far {
+          parents[p] = temp_pop.remove(k);
+          break;
+        }
+      }
+    }
+    
+    let parent_1_weights = parents[0].get_weights();
+    let parent_2_weights = parents[1].get_weights();
+    
+    (parent_1_weights, parent_2_weights)
   }
   
   //2. crossover
